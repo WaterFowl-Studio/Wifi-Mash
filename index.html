@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WiFi Resource Hog (1000 Mbps)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .slider-container {
+            margin: 20px 0;
+        }
+        .slider {
+            width: 100%;
+            margin: 20px 0;
+        }
+        .value-display {
+            font-size: 1.2em;
+            margin: 10px 0;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #d9534f;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        button:hover {
+            background-color: #c9302c;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .active {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        .inactive {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .mbps-display {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WiFi Resource Hog (1000 Mbps)</h1>
+        <p>This page consumes maximum WiFi resources in a single tab. Adjust the slider to control how much bandwidth is used.</p>
+
+        <div class="warning">
+            <strong>Warning:</strong> Setting this too high may slow down your entire network and affect other devices.
+        </div>
+
+        <div class="mbps-display" id="mbps-display">Current: 500 Mbps</div>
+
+        <div class="slider-container">
+            <label for="bandwidth-slider">WiFi Congestion Level (1-1000 Mbps):</label>
+            <input type="range" min="1" max="1000" value="500" class="slider" id="bandwidth-slider">
+        </div>
+
+        <div class="controls">
+            <button id="start-btn">Start Hogging WiFi</button>
+            <button id="stop-btn" disabled>Stop Hogging WiFi</button>
+        </div>
+
+        <div class="status inactive" id="status">
+            Not currently consuming WiFi resources
+        </div>
+
+        <div>
+            <h3>How it works:</h3>
+            <p>This page generates artificial network traffic to consume WiFi resources. The higher the Mbps setting, the more network bandwidth is used.</p>
+            <p>Note: This doesn't download files but does use network resources to simulate high-bandwidth usage.</p>
+        </div>
+    </div>
+
+    <script>
+        // DOM elements
+        const slider = document.getElementById('bandwidth-slider');
+        const mbpsDisplay = document.getElementById('mbps-display');
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const status = document.getElementById('status');
+
+        // Variables
+        let trafficInterval;
+        let currentMbps = 500;
+        let dataBuffer = new Uint8Array(0);
+
+        // Update displayed value
+        slider.addEventListener('input', function() {
+            currentMbps = this.value;
+            mbpsDisplay.textContent = `Current: ${currentMbps} Mbps`;
+        });
+
+        // Start traffic generation
+        startBtn.addEventListener('click', function() {
+            if (trafficInterval) return; // Already running
+
+            status.textContent = "Currently consuming WiFi resources";
+            status.className = "status active";
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+
+            // Calculate data size based on Mbps (1 Mbps = 125000 bytes/sec)
+            const dataSize = currentMbps * 125000;
+
+            // Generate traffic continuously
+            trafficInterval = setInterval(() => {
+                // Create new data buffer
+                dataBuffer = new Uint8Array(dataSize);
+
+                // Simulate network activity by keeping the buffer in memory
+                // In a real scenario, this would be actual network traffic
+                const temp = dataBuffer;
+            }, 100);
+        });
+
+        // Stop traffic generation
+        stopBtn.addEventListener('click', function() {
+            clearInterval(trafficInterval);
+            trafficInterval = null;
+            dataBuffer = new Uint8Array(0);
+            status.textContent = "Not currently consuming WiFi resources";
+            status.className = "status inactive";
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+        });
+    </script>
+</body>
+</html>
