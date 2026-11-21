@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WiFi Resource Hog (1000 Mbps)</title>
+    <title>WiFi Resource Hog (100,000 Mbps)</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -24,6 +24,7 @@
         }
         .slider-container {
             margin: 20px 0;
+            position: relative;
         }
         .slider {
             width: 100%;
@@ -44,6 +45,7 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 1em;
+            margin: 5px;
         }
         button:hover {
             background-color: #c9302c;
@@ -77,12 +79,45 @@
             border-radius: 5px;
             margin: 20px 0;
         }
+        .unlock-warning {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            display: none;
+        }
+        .slider-track {
+            position: relative;
+        }
+        .slider-thumb {
+            background-color: #d9534f;
+        }
+        .max-line {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2px;
+            height: 100%;
+            background-color: #d9534f;
+            z-index: 1;
+        }
+        .credits {
+            margin-top: 30px;
+            font-size: 0.9em;
+            color: #666;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>WiFi Resource Hog (1000 Mbps)</h1>
+        <h1>WiFi Resource Hog (100,000 Mbps)</h1>
         <p>This page consumes maximum WiFi resources in a single tab. Adjust the slider to control how much bandwidth is used.</p>
+
+        <div class="unlock-warning" id="unlock-warning">
+            <strong>Warning:</strong> You've unlocked extreme mode! The slider now goes up to 100,000 Mbps.
+        </div>
 
         <div class="warning">
             <strong>Warning:</strong> Setting this too high may slow down your entire network and affect other devices.
@@ -91,11 +126,13 @@
         <div class="mbps-display" id="mbps-display">Current: 500 Mbps</div>
 
         <div class="slider-container">
-            <label for="bandwidth-slider">WiFi Congestion Level (1-1000 Mbps):</label>
-            <input type="range" min="1" max="1000" value="500" class="slider" id="bandwidth-slider">
+            <label for="bandwidth-slider">WiFi Congestion Level (1-100,000 Mbps):</label>
+            <div class="max-line"></div>
+            <input type="range" min="1" max="100000" value="500" class="slider" id="bandwidth-slider">
         </div>
 
         <div class="controls">
+            <button id="unlock-btn">Unlock Extreme Mode</button>
             <button id="start-btn">Start Hogging WiFi</button>
             <button id="stop-btn" disabled>Stop Hogging WiFi</button>
         </div>
@@ -109,6 +146,10 @@
             <p>This page generates artificial network traffic to consume WiFi resources. The higher the Mbps setting, the more network bandwidth is used.</p>
             <p>Note: This doesn't download files but does use network resources to simulate high-bandwidth usage.</p>
         </div>
+
+        <div class="credits">
+            Thanks to <a href="https://www.youtube.com/@Ducks_UK" target="_blank">Ducks_UK</a> for the inspiration!
+        </div>
     </div>
 
     <script>
@@ -118,16 +159,29 @@
         const startBtn = document.getElementById('start-btn');
         const stopBtn = document.getElementById('stop-btn');
         const status = document.getElementById('status');
+        const unlockBtn = document.getElementById('unlock-btn');
+        const unlockWarning = document.getElementById('unlock-warning');
 
         // Variables
         let trafficInterval;
         let currentMbps = 500;
         let dataBuffer = new Uint8Array(0);
+        let isUnlocked = false;
 
         // Update displayed value
         slider.addEventListener('input', function() {
             currentMbps = this.value;
             mbpsDisplay.textContent = `Current: ${currentMbps} Mbps`;
+        });
+
+        // Unlock extreme mode
+        unlockBtn.addEventListener('click', function() {
+            isUnlocked = true;
+            unlockWarning.style.display = 'block';
+            unlockBtn.style.display = 'none';
+            slider.max = 100000;
+            slider.value = 50000;
+            mbpsDisplay.textContent = `Current: 50,000 Mbps`;
         });
 
         // Start traffic generation
@@ -148,7 +202,6 @@
                 dataBuffer = new Uint8Array(dataSize);
 
                 // Simulate network activity by keeping the buffer in memory
-                // In a real scenario, this would be actual network traffic
                 const temp = dataBuffer;
             }, 100);
         });
