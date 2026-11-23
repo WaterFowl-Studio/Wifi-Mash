@@ -3,13 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>WiFi Resource Hog (100,000 Mbps)</title>
+  <title>Wifi Mash</title>
   <style>
     :root {
-      font-family: "Segoe UI", system-ui, sans-serif;
+      font-family: system-ui, sans-serif;
       color: #202124;
       background: #f1f4f8;
-      font-synthesis: none;
     }
 
     * { box-sizing: border-box; }
@@ -17,394 +16,209 @@
     body {
       min-height: 100vh;
       margin: 0;
-      padding: 32px 16px;
+      padding: 24px 14px;
       display: grid;
       place-items: center;
     }
 
-    button, input { font: inherit; }
-
-    .container {
-      width: min(100%, 780px);
-      padding: clamp(22px, 5vw, 38px);
-      background: #fff;
+    main {
+      width: min(100%, 620px);
+      padding: clamp(22px, 5vw, 36px);
+      background: white;
       border: 1px solid #e1e5ea;
       border-radius: 16px;
       box-shadow: 0 12px 36px rgb(24 39 60 / 9%);
     }
 
-    header { margin-bottom: 24px; }
+    h1 { margin: 0 0 8px; }
+    p { line-height: 1.55; color: #596273; }
 
-    h1 {
-      margin: 0 0 10px;
-      font-size: clamp(1.7rem, 5vw, 2.35rem);
-      letter-spacing: -.035em;
-    }
-
-    p { line-height: 1.6; }
-
-    .intro { margin: 0; color: #596273; }
-
-    .warning {
-      margin: 14px 0;
-      padding: 15px 17px;
-      border: 1px solid #f1d889;
-      border-radius: 9px;
-      background: #fff7df;
-      color: #684c00;
-      line-height: 1.55;
-    }
-
-    .unlock-warning {
-      display: none;
-      border-color: #efb7bc;
-      background: #fff0f1;
-      color: #721c24;
-    }
-
-    .readout {
-      margin: 28px 0 22px;
-      text-align: center;
-      font-size: clamp(1.35rem, 4vw, 1.8rem);
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .slider-section label {
+    label {
       display: block;
-      margin-bottom: 12px;
+      margin: 22px 0 8px;
       font-weight: 650;
     }
 
-    input[type="range"] {
-      display: block;
-      width: 100%;
-      accent-color: #0875d1;
-      cursor: pointer;
-    }
+    input[type="range"] { width: 100%; accent-color: #0875d1; }
 
-    .slider-ends {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 5px;
-      color: #697386;
-      font-size: .88rem;
+    .value {
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
     }
 
     .controls {
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
       gap: 10px;
-      margin: 26px 0 20px;
+      margin: 22px 0 16px;
     }
 
     button {
-      min-height: 42px;
-      padding: 9px 16px;
+      flex: 1;
+      min-height: 44px;
       border: 1px solid #cbd2dc;
       border-radius: 7px;
       background: #f8f9fb;
-      color: #202124;
+      font: inherit;
+      font-weight: 650;
       cursor: pointer;
-      font-weight: 600;
-      transition: background .15s ease, border-color .15s ease;
     }
-
-    button:hover:not(:disabled) { background: #edf1f6; }
-    button:disabled { opacity: .55; cursor: not-allowed; }
 
     button.primary {
       border-color: #0875d1;
       background: #0875d1;
-      color: #fff;
+      color: white;
     }
 
-    button.primary:hover:not(:disabled) {
-      border-color: #0665b5;
-      background: #0665b5;
-    }
-
-    button:focus-visible, input:focus-visible {
-      outline: 3px solid #84bcff;
-      outline-offset: 2px;
-    }
+    button:disabled { opacity: .55; cursor: not-allowed; }
 
     .status {
-      margin: 20px 0 28px;
-      padding: 13px 15px;
+      padding: 13px;
       border-radius: 8px;
       text-align: center;
-      line-height: 1.5;
+      background: #eaf5ec;
+      color: #246b35;
     }
 
-    .status.inactive { background: #eaf5ec; color: #246b35; }
-    .status.active { background: #fff3dc; color: #785400; }
-
-    .how-it-works {
-      padding-top: 18px;
-      border-top: 1px solid #e8ebef;
-      color: #596273;
+    .status.running {
+      background: #fff3dc;
+      color: #785400;
     }
 
-    .how-it-works h2 {
-      margin: 0 0 8px;
-      color: #202124;
-      font-size: 1.15rem;
-    }
-
-    .how-it-works p { margin: 8px 0; }
-
-    .credits {
-      margin-top: 26px;
-      color: #626b78;
-      text-align: center;
+    .note {
+      margin-top: 18px;
+      padding: 13px;
+      border-radius: 8px;
+      background: #f1f7fd;
+      color: #244767;
       font-size: .94rem;
     }
 
-    a { color: #075fb2; }
-
-    dialog {
-      width: min(480px, calc(100% - 28px));
-      max-height: min(88vh, 720px);
-      overflow: auto;
-      padding: 24px;
-      border: 1px solid #d8dde4;
-      border-radius: 12px;
-      background: #fbfbfc;
-      color: #202124;
-      box-shadow: 0 20px 60px rgb(0 0 0 / 28%);
-    }
-
-    dialog::backdrop { background: rgb(0 0 0 / 48%); }
-
-    .modal-heading {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .modal-icon {
-      display: grid;
-      width: 36px;
-      height: 36px;
-      flex: 0 0 36px;
-      place-items: center;
-      border-radius: 50%;
-      background: #c42b1c;
-      color: white;
-      font-weight: 700;
-    }
-
-    .modal-heading h2 { margin: 0; font-size: 1.25rem; }
-    .modal-content { color: #4f5661; line-height: 1.5; }
-    .modal-content li { margin: 6px 0; }
-
-    .confirm-label {
-      display: block;
-      margin: 18px 0 7px;
-      font-weight: 650;
-    }
-
-    .confirm-input {
-      width: 100%;
-      min-height: 42px;
-      padding: 9px 11px;
-      border: 1px solid #9aa1aa;
-      border-radius: 6px;
-      background: #fff;
-    }
-
-    .modal-buttons {
-      display: flex;
-      justify-content: flex-end;
-      gap: 9px;
-      margin-top: 20px;
-    }
-
-    @media (max-width: 560px) {
-      body { padding: 16px 10px; }
+    @media (max-width: 480px) {
       .controls { flex-direction: column; }
-      .controls button { width: 100%; }
-      dialog { padding: 20px; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        scroll-behavior: auto !important;
-        transition-duration: .01ms !important;
-      }
     }
   </style>
 </head>
 <body>
-  <main class="container">
-    <header>
-      <h1>WiFi Resource Hog (100,000 Mbps)</h1>
-      <p class="intro">
-        This page displays a bandwidth setting and simulation status.
-      </p>
-    </header>
+  <main>
+    <h1>Wifi Mash</h1>
+    <p>Run a short, adjustable performance test on this page.</p>
 
-    <div class="warning">
-      <strong>Warning:</strong> Setting this too high may slow down your entire network and affect other devices.
-    </div>
+    <label for="intensity">
+      Test intensity: <span class="value" id="intensity-value">2</span>/10
+    </label>
+    <input id="intensity" type="range" min="1" max="10" value="2">
 
-    <div class="warning unlock-warning" id="unlock-warning" role="alert">
-      <strong>Warning:</strong> You've unlocked extreme mode! The slider now goes up to 100,000 Mbps.
-    </div>
-
-    <div class="readout" id="mbps-display" aria-live="polite">Current: 500 Mbps</div>
-
-    <section class="slider-section">
-      <label for="bandwidth-slider">WiFi Congestion Level (1-100,000 Mbps):</label>
-      <input
-        type="range"
-        min="1"
-        max="1000"
-        value="500"
-        id="bandwidth-slider"
-      >
-      <div class="slider-ends">
-        <span>1 Mbps</span>
-        <span id="max-label">1,000 Mbps</span>
-      </div>
-    </section>
+    <label for="duration">
+      Duration: <span class="value" id="duration-value">10</span> seconds
+    </label>
+    <input id="duration" type="range" min="1" max="30" value="10">
 
     <div class="controls">
-      <button id="unlock-btn" type="button">Unlock Extreme Mode</button>
-      <button class="primary" id="start-btn" type="button">Start Hogging WiFi</button>
-      <button id="stop-btn" type="button" disabled>Stop Hogging WiFi</button>
+      <button class="primary" id="start">Start test</button>
+      <button id="stop" disabled>Stop test</button>
     </div>
 
-    <div class="status inactive" id="status" role="status" aria-live="polite">
-      Not currently consuming WiFi resources
+    <div class="status" id="status" role="status" aria-live="polite">
+      Ready
     </div>
 
-    <section class="how-it-works">
-      <h2>How it works:</h2>
-      <p>
-        This page does not generate WiFi traffic. The original code only
-        allocated browser memory, which could freeze or crash the tab at high
-        settings.
-      </p>
-      <p>
-        The controls here update the displayed setting and status only; they
-        do not send network traffic.
-      </p>
-    </section>
-
-    <footer class="credits">
-      Thanks to Ducks_UK and Goooose-UK!
-      <a href="https://www.youtube.com/@Ducks_UK"
-         target="_blank"
-         rel="noopener noreferrer">Ducks_UK on YouTube</a>
-    </footer>
+    <div class="note">
+      The test performs temporary calculations in this browser tab. Start
+      with low intensity. Press Stop or close the tab to end the test.
+    </div>
   </main>
 
-  <dialog id="extremeModeModal" aria-labelledby="modal-title">
-    <div class="modal-heading">
-      <div class="modal-icon" aria-hidden="true">!</div>
-      <h2 id="modal-title">Extreme Mode</h2>
-    </div>
-
-    <div class="modal-content">
-      <p>You are about to enable Extreme Mode which allows bandwidth consumption up to 100,000 Mbps.</p>
-      <p><strong>Consequences of this action:</strong></p>
-      <ul>
-        <li>May completely saturate your network</li>
-        <li>Could cause other devices to lose internet connection</li>
-        <li>May trigger network protection mechanisms</li>
-        <li>Could potentially cause temporary network outages</li>
-        <li>May require router restart to restore normal operation</li>
-      </ul>
-      <p>Are you sure you want to continue?</p>
-    </div>
-
-    <label class="confirm-label" for="confirm-input">
-      Type ENABLE EXTREME MODE to confirm
-    </label>
-    <input
-      class="confirm-input"
-      id="confirm-input"
-      type="text"
-      autocomplete="off"
-      spellcheck="false"
-    >
-
-    <div class="modal-buttons">
-      <button id="modalNo" type="button">No</button>
-      <button class="primary" id="modalYes" type="button" disabled>Yes</button>
-    </div>
-  </dialog>
-
   <script>
-    const slider = document.querySelector("#bandwidth-slider");
-    const mbpsDisplay = document.querySelector("#mbps-display");
+    const intensity = document.querySelector("#intensity");
+    const duration = document.querySelector("#duration");
+    const intensityValue = document.querySelector("#intensity-value");
+    const durationValue = document.querySelector("#duration-value");
+    const startButton = document.querySelector("#start");
+    const stopButton = document.querySelector("#stop");
     const status = document.querySelector("#status");
-    const modal = document.querySelector("#extremeModeModal");
-    const confirmInput = document.querySelector("#confirm-input");
-    const modalYes = document.querySelector("#modalYes");
-    const stopBtn = document.querySelector("#stop-btn");
-    const startBtn = document.querySelector("#start-btn");
 
-    const confirmationPhrase = "ENABLE EXTREME MODE";
-    let isRunning = false;
+    let worker = null;
+    let timeoutId = null;
 
-    function updateDisplay() {
-      mbpsDisplay.textContent =
-        `Current: ${Number(slider.value).toLocaleString()} Mbps`;
+    intensity.addEventListener("input", () => {
+      intensityValue.textContent = intensity.value;
+    });
+
+    duration.addEventListener("input", () => {
+      durationValue.textContent = duration.value;
+    });
+
+    function stopTest(message = "Test stopped") {
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+
+      if (worker) {
+        worker.terminate();
+        worker = null;
+      }
+
+      startButton.disabled = false;
+      stopButton.disabled = true;
+      status.textContent = message;
+      status.classList.remove("running");
     }
 
-    slider.addEventListener("input", updateDisplay);
+    startButton.addEventListener("click", () => {
+      if (worker) return;
 
-    document.querySelector("#unlock-btn").addEventListener("click", () => {
-      confirmInput.value = "";
-      modalYes.disabled = true;
-      modal.showModal();
-      confirmInput.focus();
+      const level = Number(intensity.value);
+      const seconds = Number(duration.value);
+
+      // Bounded workload: one worker, capped intensity, capped duration.
+      const workerCode = `
+        let running = true;
+        self.onmessage = () => { running = false; };
+
+        function work() {
+          if (!running) return;
+
+          const start = performance.now();
+          const workMs = ${level * 8};
+
+          while (running && performance.now() - start < workMs) {
+            let value = Math.random();
+            for (let i = 0; i < 400; i++) {
+              value = Math.sqrt(value + i + 1);
+            }
+          }
+
+          if (running) setTimeout(work, 16);
+        }
+
+        work();
+      `;
+
+      try {
+        const blob = new Blob([workerCode], { type: "text/javascript" });
+        const workerUrl = URL.createObjectURL(blob);
+        worker = new Worker(workerUrl);
+        URL.revokeObjectURL(workerUrl);
+      } catch (error) {
+        status.textContent = "Could not start the test in this browser.";
+        return;
+      }
+
+      startButton.disabled = true;
+      stopButton.disabled = false;
+      status.textContent = `Test running — ${seconds} second(s)`;
+      status.classList.add("running");
+
+      timeoutId = setTimeout(() => {
+        stopTest("Test complete");
+      }, seconds * 1000);
     });
 
-    confirmInput.addEventListener("input", () => {
-      modalYes.disabled =
-        confirmInput.value.trim() !== confirmationPhrase;
-    });
+    stopButton.addEventListener("click", () => stopTest());
 
-    document.querySelector("#modalNo").addEventListener("click", () => {
-      modal.close();
-    });
-
-    modalYes.addEventListener("click", () => {
-      if (confirmInput.value.trim() !== confirmationPhrase) return;
-
-      slider.max = "100000";
-      slider.value = "50000";
-      document.querySelector("#max-label").textContent = "100,000 Mbps";
-      document.querySelector("#unlock-warning").style.display = "block";
-      document.querySelector("#unlock-btn").hidden = true;
-      updateDisplay();
-      modal.close();
-    });
-
-    startBtn.addEventListener("click", () => {
-      if (isRunning) return;
-
-      isRunning = true;
-      status.textContent =
-        "Simulation running — no WiFi traffic is being sent.";
-      status.className = "status active";
-      startBtn.disabled = true;
-      stopBtn.disabled = false;
-    });
-
-    stopBtn.addEventListener("click", () => {
-      isRunning = false;
-      status.textContent =
-        "Not currently consuming WiFi resources";
-      status.className = "status inactive";
-      startBtn.disabled = false;
-      stopBtn.disabled = true;
+    window.addEventListener("pagehide", () => {
+      if (worker) worker.terminate();
     });
   </script>
 </body>
