@@ -1,406 +1,225 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f1f4f8">
-  <title>Device Test</title>
-
+  <title>GPU Stress Test</title>
   <style>
-    :root {
-      color-scheme: light;
-      font-family: "Segoe UI", system-ui, sans-serif;
-      color: #202124;
-      background: #f1f4f8;
-      --surface: #fff;
-      --text: #202124;
-      --muted: #596273;
-      --border: #e1e5ea;
-      --blue: #0875d1;
-      --blue-dark: #0665b5;
-      --green-bg: #eaf5ec;
-      --green-text: #246b35;
-      --amber-bg: #fff7df;
-      --amber-text: #684c00;
-      --radius: 12px;
-    }
-
-    *, *::before, *::after { box-sizing: border-box; }
-
     body {
-      min-width: 320px;
-      min-height: 100vh;
       margin: 0;
-      padding: 24px 14px;
-      display: grid;
-      place-items: center;
-      background:
-        radial-gradient(circle at top left, rgb(8 117 209 / 5%), transparent 32rem),
-        #f1f4f8;
+      padding: 20px;
+      background: #111827;
+      color: #f9fafb;
+      font: 16px system-ui, sans-serif;
     }
-
-    button, input { font: inherit; }
-
-    .container {
-      width: min(100%, 760px);
-      padding: clamp(20px, 5vw, 36px);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      box-shadow: 0 12px 36px rgb(24 39 60 / 9%);
-    }
-
-    header { margin-bottom: 22px; }
-
-    .eyebrow {
-      margin: 0 0 8px;
-      color: var(--blue);
-      font-size: .77rem;
-      font-weight: 750;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-    }
-
-    h1 {
-      margin: 0 0 10px;
-      font-size: clamp(1.8rem, 5vw, 2.4rem);
-      letter-spacing: -.04em;
-    }
-
-    .intro, .muted {
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    .intro { max-width: 60ch; margin: 0; }
-
-    .card {
-      margin-top: 22px;
-      padding: clamp(18px, 4vw, 26px);
-      border: 1px solid #e6ebf1;
-      border-radius: var(--radius);
-      background: #fbfcfe;
-    }
-
-    .card h2 { margin: 0; font-size: 1.12rem; }
-
-    .muted { margin: 6px 0 0; font-size: .92rem; }
-
-    .readout {
-      margin: 24px 0;
-      text-align: center;
-      font-size: clamp(1.5rem, 5vw, 2.1rem);
-      font-weight: 750;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .readout small {
-      display: block;
-      margin-bottom: 4px;
-      color: var(--muted);
-      font-size: .84rem;
-      font-weight: 600;
-    }
-
-    label { display: block; margin-bottom: 10px; font-weight: 650; }
-
-    input[type="range"] {
-      display: block;
-      width: 100%;
-      min-height: 28px;
-      accent-color: var(--blue);
-    }
-
-    .ends {
-      display: flex;
-      justify-content: space-between;
-      color: #697386;
-      font-size: .86rem;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .quick-values, .controls {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 9px;
-    }
-
-    .quick-values { margin-top: 16px; }
-
-    button {
-      min-height: 42px;
-      padding: 9px 14px;
-      border: 1px solid #cbd2dc;
-      border-radius: 7px;
-      background: #fff;
-      color: var(--text);
-      font-weight: 650;
-      cursor: pointer;
-    }
-
-    button:hover:not(:disabled) { background: #edf1f6; }
-
-    button:disabled { opacity: .55; cursor: not-allowed; }
-
-    .primary {
-      border-color: var(--blue);
-      background: var(--blue);
-      color: white;
-    }
-
-    .primary:hover:not(:disabled) {
-      border-color: var(--blue-dark);
-      background: var(--blue-dark);
-    }
-
-    .controls { margin: 20px 0 14px; }
-
-    .status {
-      min-height: 48px;
-      margin: 14px 0 0;
-      padding: 12px 15px;
-      border-radius: 8px;
-      background: var(--green-bg);
-      color: var(--green-text);
-      text-align: center;
-      line-height: 1.5;
-    }
-
-    .status.active { background: var(--amber-bg); color: var(--amber-text); }
-
+    main { max-width: 760px; margin: auto; }
     canvas {
       display: block;
       width: 100%;
-      height: 220px;
-      margin-top: 16px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: #111827;
+      height: min(60vh, 460px);
+      background: #000;
+      border-radius: 10px;
     }
-
-    .note {
-      margin: 12px 0 0;
-      color: var(--muted);
-      font-size: .88rem;
-      line-height: 1.5;
+    button, select {
+      min-height: 44px;
+      margin: 8px 8px 8px 0;
+      padding: 8px 14px;
+      font: inherit;
     }
-
-    button:focus-visible, input:focus-visible {
-      outline: 3px solid #84bcff;
-      outline-offset: 3px;
-    }
-
-    @media (max-width: 520px) {
-      .controls { flex-direction: column; }
-      .controls button { width: 100%; }
-      .quick-values button { flex: 1 1 auto; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { scroll-behavior: auto !important; }
-    }
+    #status { min-height: 1.5em; }
   </style>
 </head>
-
 <body>
-  <main class="container">
-    <header>
-      <p class="eyebrow">Device test</p>
-      <h1>Browser Performance Test</h1>
-      <p class="intro">
-        Run a short graphics test and view its frame rate. The Mbps slider is
-        retained as a separate display setting.
-      </p>
-    </header>
+<main>
+  <h1>GPU Stress Test</h1>
+  <p>Runs locally using WebGL. It stops automatically after the selected time.</p>
 
-    <section class="card" aria-labelledby="bandwidth-title">
-      <h2 id="bandwidth-title">Mbps display</h2>
-      <p class="muted">Choose a value to display.</p>
+  <label for="duration">Duration:</label>
+  <select id="duration">
+    <option value="10">10 seconds</option>
+    <option value="20">20 seconds</option>
+    <option value="30" selected>30 seconds</option>
+  </select>
 
-      <output class="readout" id="value-output" for="bandwidth-slider" aria-live="polite">
-        <small>Selected value</small>
-        <span id="value-number">500</span> Mbps
-      </output>
+  <label for="load">Load:</label>
+  <select id="load">
+    <option value="1">Low</option>
+    <option value="2" selected>Medium</option>
+    <option value="3">High</option>
+  </select>
 
-      <label for="bandwidth-slider">Displayed value</label>
-      <input
-        type="range"
-        id="bandwidth-slider"
-        min="1"
-        max="100000"
-        value="500"
-        step="1"
-      >
+  <button id="start">Start test</button>
+  <button id="stop" disabled>Stop test</button>
+  <p id="status" role="status">Ready</p>
+  <canvas id="gpu"></canvas>
+</main>
 
-      <div class="ends" aria-hidden="true">
-        <span>1 Mbps</span>
-        <span>100,000 Mbps</span>
-      </div>
+<script>
+(() => {
+  const canvas = document.querySelector("#gpu");
+  const status = document.querySelector("#status");
+  const startButton = document.querySelector("#start");
+  const stopButton = document.querySelector("#stop");
+  const durationSelect = document.querySelector("#duration");
+  const loadSelect = document.querySelector("#load");
 
-      <div class="quick-values" aria-label="Quick value choices">
-        <button type="button" data-value="10">10 Mbps</button>
-        <button type="button" data-value="100">100 Mbps</button>
-        <button type="button" data-value="1000">1,000 Mbps</button>
-        <button type="button" data-value="100000">100,000 Mbps</button>
-      </div>
-    </section>
+  const gl = canvas.getContext("webgl", {
+    antialias: false,
+    powerPreference: "high-performance"
+  });
 
-    <section class="card" aria-labelledby="test-title">
-      <h2 id="test-title">Graphics test</h2>
-      <p class="muted">Runs for up to 30 seconds. Stop at any time.</p>
+  if (!gl) {
+    status.textContent = "WebGL is unavailable in this browser.";
+    startButton.disabled = true;
+    return;
+  }
 
-      <div class="controls">
-        <button class="primary" id="start-button" type="button">Start test</button>
-        <button id="stop-button" type="button" disabled>Stop test</button>
-      </div>
-
-      <div class="status" id="status" role="status" aria-live="polite">
-        Test stopped
-      </div>
-
-      <canvas id="test-canvas" aria-label="Animated graphics test"></canvas>
-      <p class="note" id="result">Frame rate: —</p>
-    </section>
-  </main>
-
-  <script>
-    "use strict";
-
-    const slider = document.querySelector("#bandwidth-slider");
-    const valueNumber = document.querySelector("#value-number");
-    const startButton = document.querySelector("#start-button");
-    const stopButton = document.querySelector("#stop-button");
-    const status = document.querySelector("#status");
-    const result = document.querySelector("#result");
-    const canvas = document.querySelector("#test-canvas");
-    const ctx = canvas.getContext("2d");
-
-    const MAX_DURATION_MS = 30_000;
-    let animationId = 0;
-    let timeoutId = 0;
-    let running = false;
-    let startedAt = 0;
-    let lastFrameAt = 0;
-    let frames = 0;
-    let hue = 0;
-
-    function formatNumber(value) {
-      return Number(value).toLocaleString("en-US");
+  const vertexSource = `
+    attribute vec2 position;
+    void main() {
+      gl_Position = vec4(position, 0.0, 1.0);
     }
+  `;
 
-    function updateReadout() {
-      valueNumber.textContent = formatNumber(slider.value);
-    }
+  const fragmentSource = `
+    precision mediump float;
+    uniform vec2 resolution;
+    uniform float time;
+    uniform int iterations;
 
-    function resizeCanvas() {
-      const rect = canvas.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.max(1, Math.floor(rect.width * dpr));
-      canvas.height = Math.max(1, Math.floor(rect.height * dpr));
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    }
+    void main() {
+      vec2 uv = gl_FragCoord.xy / resolution;
+      vec2 p = (uv - 0.5) * 2.0;
+      float v = 0.0;
 
-    function drawFrame(now) {
-      if (!running) return;
-
-      const width = canvas.clientWidth;
-      const height = canvas.clientHeight;
-      const elapsed = now - startedAt;
-      const seconds = Math.max(elapsed / 1000, 0.001);
-
-      hue = (hue + 1.4) % 360;
-      ctx.fillStyle = `hsl(${hue} 45% 12%)`;
-      ctx.fillRect(0, 0, width, height);
-
-      const count = 40;
-      for (let i = 0; i < count; i++) {
-        const x = (i * 47 + elapsed * (0.025 + (i % 5) * 0.006)) % width;
-        const y = (i * 83 + Math.sin(elapsed / 350 + i) * 45) % height;
-        const radius = 4 + (i % 9);
-
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.fillStyle = `hsl(${(hue + i * 8) % 360} 85% 62%)`;
-        ctx.fill();
+      for (int i = 0; i < 160; i++) {
+        if (i >= iterations) break;
+        float fi = float(i);
+        p = abs(p) / max(dot(p, p), 0.12) - vec2(
+          0.72 + 0.1 * sin(time + fi * 0.04),
+          0.68 + 0.1 * cos(time + fi * 0.03)
+        );
+        v += 0.002 / (0.015 + abs(p.x * p.y));
       }
 
-      frames++;
-      if (now - lastFrameAt >= 1000) {
-        const fps = Math.round(frames * 1000 / (now - lastFrameAt));
-        result.textContent = `Frame rate: ${fps} FPS`;
-        frames = 0;
-        lastFrameAt = now;
-      }
-
-      if (elapsed >= MAX_DURATION_MS) {
-        stopTest("Test finished (30-second limit)");
-        return;
-      }
-
-      animationId = requestAnimationFrame(drawFrame);
-    }
-
-    function stopTest(message = "Test stopped") {
-      if (!running) return;
-
-      running = false;
-      cancelAnimationFrame(animationId);
-      clearTimeout(timeoutId);
-      startButton.disabled = false;
-      stopButton.disabled = true;
-      status.classList.remove("active");
-      status.textContent = message;
-    }
-
-    function startTest() {
-      if (!ctx || running) {
-        status.textContent = "Canvas rendering is not available in this browser.";
-        return;
-      }
-
-      resizeCanvas();
-      running = true;
-      frames = 0;
-      startedAt = performance.now();
-      lastFrameAt = startedAt;
-
-      startButton.disabled = true;
-      stopButton.disabled = false;
-      status.classList.add("active");
-      status.textContent = "Test running…";
-
-      timeoutId = window.setTimeout(
-        () => stopTest("Test stopped (30-second limit)"),
-        MAX_DURATION_MS
+      gl_FragColor = vec4(
+        0.5 + 0.5 * sin(v + time),
+        0.5 + 0.5 * sin(v + time + 2.1),
+        0.5 + 0.5 * sin(v + time + 4.2),
+        1.0
       );
+    }
+  `;
 
-      animationId = requestAnimationFrame(drawFrame);
+  function compile(type, source) {
+    const shader = gl.createShader(type);
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      throw new Error(gl.getShaderInfoLog(shader));
+    }
+    return shader;
+  }
+
+  let program;
+  try {
+    program = gl.createProgram();
+    gl.attachShader(program, compile(gl.VERTEX_SHADER, vertexSource));
+    gl.attachShader(program, compile(gl.FRAGMENT_SHADER, fragmentSource));
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      throw new Error(gl.getProgramInfoLog(program));
+    }
+  } catch (error) {
+    status.textContent = "Could not initialize WebGL: " + error.message;
+    startButton.disabled = true;
+    return;
+  }
+
+  const position = gl.getAttribLocation(program, "position");
+  const resolution = gl.getUniformLocation(program, "resolution");
+  const timeUniform = gl.getUniformLocation(program, "time");
+  const iterationsUniform = gl.getUniformLocation(program, "iterations");
+
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+    gl.STATIC_DRAW
+  );
+
+  let running = false;
+  let frameId = 0;
+  let endAt = 0;
+  let startAt = 0;
+
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+    canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+    gl.viewport(0, 0, canvas.width, canvas.height);
+  }
+
+  function stop(message = "Test stopped.") {
+    if (!running) return;
+    running = false;
+    cancelAnimationFrame(frameId);
+    startButton.disabled = false;
+    stopButton.disabled = true;
+    status.textContent = message;
+  }
+
+  function draw(now) {
+    if (!running) return;
+
+    if (now >= endAt || document.hidden) {
+      stop(document.hidden ? "Stopped because the page was hidden." : "Test complete.");
+      return;
     }
 
-    slider.addEventListener("input", updateReadout);
-    startButton.addEventListener("click", startTest);
-    stopButton.addEventListener("click", () => stopTest());
+    const elapsed = (now - startAt) / 1000;
+    const level = Number(loadSelect.value);
+    const iterations = level === 1 ? 24 : level === 2 ? 64 : 120;
 
-    document.querySelectorAll("[data-value]").forEach((button) => {
-      button.addEventListener("click", () => {
-        slider.value = button.dataset.value;
-        updateReadout();
-      });
-    });
+    gl.useProgram(program);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.enableVertexAttribArray(position);
+    gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+    gl.uniform2f(resolution, canvas.width, canvas.height);
+    gl.uniform1f(timeUniform, elapsed);
+    gl.uniform1i(iterationsUniform, iterations);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-    window.addEventListener("resize", () => {
-      if (running) resizeCanvas();
-    });
+    const secondsLeft = Math.max(0, Math.ceil((endAt - now) / 1000));
+    status.textContent = `Running — ${secondsLeft}s remaining.`;
+    frameId = requestAnimationFrame(draw);
+  }
 
-    document.addEventListener("visibilitychange", () => {
-      if (document.hidden) stopTest("Test stopped because the page was hidden");
-    });
+  startButton.addEventListener("click", () => {
+    resize();
+    running = true;
+    startAt = performance.now();
+    endAt = startAt + Number(durationSelect.value) * 1000;
+    startButton.disabled = true;
+    stopButton.disabled = false;
+    status.textContent = "Starting GPU test…";
+    frameId = requestAnimationFrame(draw);
+  });
 
-    window.addEventListener("pagehide", () => stopTest());
+  stopButton.addEventListener("click", () => stop());
+  window.addEventListener("resize", resize);
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) stop("Stopped because the page was hidden.");
+  });
+  canvas.addEventListener("webglcontextlost", event => {
+    event.preventDefault();
+    stop("GPU test stopped: the graphics context was lost.");
+  });
 
-    updateReadout();
-    resizeCanvas();
-  </script>
+  resize();
+})();
+</script>
 </body>
 </html>
