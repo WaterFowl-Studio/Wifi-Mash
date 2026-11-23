@@ -1,343 +1,411 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WiFi Resource Hog (100,000 Mbps)</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            text-align: center;
-            background-color: #f5f5f5;
-        }
-        .container {
-            background-color: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #333;
-        }
-        .slider-container {
-            margin: 20px 0;
-            position: relative;
-        }
-        .slider {
-            width: 100%;
-            margin: 20px 0;
-        }
-        .value-display {
-            font-size: 1.2em;
-            margin: 10px 0;
-        }
-        .controls {
-            margin: 20px 0;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #0078d4;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1em;
-            margin: 5px;
-        }
-        button:hover {
-            background-color: #0063b1;
-        }
-        button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-        .status {
-            margin: 20px 0;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        .active {
-            background-color: #f2dede;
-            color: #a94442;
-        }
-        .inactive {
-            background-color: #dff0d8;
-            color: #3c763d;
-        }
-        .mbps-display {
-            font-size: 1.5em;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-        .warning {
-            background-color: #fff3cd;
-            color: #856404;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 20px 0;
-        }
-        .unlock-warning {
-            background-color: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 20px 0;
-            display: none;
-        }
-        .slider-track {
-            position: relative;
-        }
-        .slider-thumb {
-            background-color: #0078d4;
-        }
-        .max-line {
-            position: absolute;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 2px;
-            height: 100%;
-            background-color: #d9534f;
-            z-index: 1;
-        }
-        .credits {
-            margin-top: 30px;
-            font-size: 0.9em;
-            color: #666;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WiFi Resource Hog (100,000 Mbps)</title>
+  <style>
+    :root {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      color: #202124;
+      background: #f1f4f8;
+      font-synthesis: none;
+    }
 
-        /* Windows 11 style modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
-        }
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: all;
-        }
-        .modal {
-            background-color: #f3f3f3;
-            border-radius: 8px;
-            padding: 20px;
-            width: 400px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-            border: 1px solid #e0e0e0;
-        }
-        .modal-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .modal-icon {
-            width: 32px;
-            height: 32px;
-            margin-right: 10px;
-            background-color: #f78000;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-        }
-        .modal-title {
-            font-size: 1.2em;
-            font-weight: 600;
-            color: #1c1c1c;
-        }
-        .modal-content {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        .modal-content p {
-            margin: 10px 0;
-            color: #4b4b4b;
-        }
-        .modal-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-        .modal-btn {
-            padding: 8px 16px;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-        }
-        .modal-btn.primary {
-            background-color: #0078d4;
-            color: white;
-        }
-        .modal-btn.secondary {
-            background-color: #f3f3f3;
-            color: #0078d4;
-            border: 1px solid #e0e0e0;
-        }
-        .modal-btn:hover {
-            opacity: 0.8;
-        }
-    </style>
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      padding: 32px 16px;
+      display: grid;
+      place-items: center;
+    }
+
+    button, input { font: inherit; }
+
+    .container {
+      width: min(100%, 780px);
+      padding: clamp(22px, 5vw, 38px);
+      background: #fff;
+      border: 1px solid #e1e5ea;
+      border-radius: 16px;
+      box-shadow: 0 12px 36px rgb(24 39 60 / 9%);
+    }
+
+    header { margin-bottom: 24px; }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(1.7rem, 5vw, 2.35rem);
+      letter-spacing: -.035em;
+    }
+
+    p { line-height: 1.6; }
+
+    .intro { margin: 0; color: #596273; }
+
+    .warning {
+      margin: 14px 0;
+      padding: 15px 17px;
+      border: 1px solid #f1d889;
+      border-radius: 9px;
+      background: #fff7df;
+      color: #684c00;
+      line-height: 1.55;
+    }
+
+    .unlock-warning {
+      display: none;
+      border-color: #efb7bc;
+      background: #fff0f1;
+      color: #721c24;
+    }
+
+    .readout {
+      margin: 28px 0 22px;
+      text-align: center;
+      font-size: clamp(1.35rem, 4vw, 1.8rem);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .slider-section label {
+      display: block;
+      margin-bottom: 12px;
+      font-weight: 650;
+    }
+
+    input[type="range"] {
+      display: block;
+      width: 100%;
+      accent-color: #0875d1;
+      cursor: pointer;
+    }
+
+    .slider-ends {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 5px;
+      color: #697386;
+      font-size: .88rem;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin: 26px 0 20px;
+    }
+
+    button {
+      min-height: 42px;
+      padding: 9px 16px;
+      border: 1px solid #cbd2dc;
+      border-radius: 7px;
+      background: #f8f9fb;
+      color: #202124;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background .15s ease, border-color .15s ease;
+    }
+
+    button:hover:not(:disabled) { background: #edf1f6; }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+
+    button.primary {
+      border-color: #0875d1;
+      background: #0875d1;
+      color: #fff;
+    }
+
+    button.primary:hover:not(:disabled) {
+      border-color: #0665b5;
+      background: #0665b5;
+    }
+
+    button:focus-visible, input:focus-visible {
+      outline: 3px solid #84bcff;
+      outline-offset: 2px;
+    }
+
+    .status {
+      margin: 20px 0 28px;
+      padding: 13px 15px;
+      border-radius: 8px;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .status.inactive { background: #eaf5ec; color: #246b35; }
+    .status.active { background: #fff3dc; color: #785400; }
+
+    .how-it-works {
+      padding-top: 18px;
+      border-top: 1px solid #e8ebef;
+      color: #596273;
+    }
+
+    .how-it-works h2 {
+      margin: 0 0 8px;
+      color: #202124;
+      font-size: 1.15rem;
+    }
+
+    .how-it-works p { margin: 8px 0; }
+
+    .credits {
+      margin-top: 26px;
+      color: #626b78;
+      text-align: center;
+      font-size: .94rem;
+    }
+
+    a { color: #075fb2; }
+
+    dialog {
+      width: min(480px, calc(100% - 28px));
+      max-height: min(88vh, 720px);
+      overflow: auto;
+      padding: 24px;
+      border: 1px solid #d8dde4;
+      border-radius: 12px;
+      background: #fbfbfc;
+      color: #202124;
+      box-shadow: 0 20px 60px rgb(0 0 0 / 28%);
+    }
+
+    dialog::backdrop { background: rgb(0 0 0 / 48%); }
+
+    .modal-heading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .modal-icon {
+      display: grid;
+      width: 36px;
+      height: 36px;
+      flex: 0 0 36px;
+      place-items: center;
+      border-radius: 50%;
+      background: #c42b1c;
+      color: white;
+      font-weight: 700;
+    }
+
+    .modal-heading h2 { margin: 0; font-size: 1.25rem; }
+    .modal-content { color: #4f5661; line-height: 1.5; }
+    .modal-content li { margin: 6px 0; }
+
+    .confirm-label {
+      display: block;
+      margin: 18px 0 7px;
+      font-weight: 650;
+    }
+
+    .confirm-input {
+      width: 100%;
+      min-height: 42px;
+      padding: 9px 11px;
+      border: 1px solid #9aa1aa;
+      border-radius: 6px;
+      background: #fff;
+    }
+
+    .modal-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 9px;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 560px) {
+      body { padding: 16px 10px; }
+      .controls { flex-direction: column; }
+      .controls button { width: 100%; }
+      dialog { padding: 20px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>WiFi Resource Hog (100,000 Mbps)</h1>
-        <p>This page consumes maximum WiFi resources in a single tab. Adjust the slider to control how much bandwidth is used.</p>
+  <main class="container">
+    <header>
+      <h1>WiFi Resource Hog (100,000 Mbps)</h1>
+      <p class="intro">
+        This page displays a bandwidth setting and simulation status.
+      </p>
+    </header>
 
-        <div class="unlock-warning" id="unlock-warning">
-            <strong>Warning:</strong> You've unlocked extreme mode! The slider now goes up to 100,000 Mbps.
-        </div>
-
-        <div class="warning">
-            <strong>Warning:</strong> Setting this too high may slow down your entire network and affect other devices.
-        </div>
-
-        <div class="mbps-display" id="mbps-display">Current: 500 Mbps</div>
-
-        <div class="slider-container">
-            <label for="bandwidth-slider">WiFi Congestion Level (1-100,000 Mbps):</label>
-            <div class="max-line"></div>
-            <input type="range" min="1" max="1000" value="500" class="slider" id="bandwidth-slider">
-        </div>
-
-        <div class="controls">
-            <button id="unlock-btn">Unlock Extreme Mode</button>
-            <button id="start-btn">Start Hogging WiFi</button>
-            <button id="stop-btn" disabled>Stop Hogging WiFi</button>
-        </div>
-
-        <div class="status inactive" id="status">
-            Not currently consuming WiFi resources
-        </div>
-
-        <div>
-            <h3>How it works:</h3>
-            <p>This page generates artificial network traffic to consume WiFi resources. The higher the Mbps setting, the more network bandwidth is used.</p>
-            <p>Note: This doesn't download files but does use network resources to simulate high-bandwidth usage.</p>
-        </div>
-
-        <div class="credits">
-            Thanks to <a href="https://www.youtube.com/@Ducks_UK" target="_blank">Ducks_UK</a> for the inspiration!
-        </div>
+    <div class="warning">
+      <strong>Warning:</strong> Setting this too high may slow down your entire network and affect other devices.
     </div>
 
-    <!-- Windows 11 style modal -->
-    <div class="modal-overlay" id="extremeModeModal">
-        <div class="modal">
-            <div class="modal-header">
-                <div class="modal-icon">!</div>
-                <div class="modal-title">Extreme Mode</div>
-            </div>
-            <div class="modal-content">
-                <p>You are about to enable Extreme Mode which allows bandwidth consumption up to 100,000 Mbps.</p>
-                <p><strong>Consequences of this action:</strong></p>
-                <ul>
-                    <li>May completely saturate your network</li>
-                    <li>Could cause other devices to lose internet connection</li>
-                    <li>May trigger network protection mechanisms</li>
-                    <li>Could potentially cause temporary network outages</li>
-                    <li>May require router restart to restore normal operation</li>
-                </ul>
-                <p>Are you sure you want to continue?</p>
-            </div>
-            <div class="modal-buttons">
-                <button class="modal-btn secondary" id="modalNo">No</button>
-                <button class="modal-btn primary" id="modalYes">Yes</button>
-            </div>
-        </div>
+    <div class="warning unlock-warning" id="unlock-warning" role="alert">
+      <strong>Warning:</strong> You've unlocked extreme mode! The slider now goes up to 100,000 Mbps.
     </div>
 
-    <script>
-        // DOM elements
-        const slider = document.getElementById('bandwidth-slider');
-        const mbpsDisplay = document.getElementById('mbps-display');
-        const startBtn = document.getElementById('start-btn');
-        const stopBtn = document.getElementById('stop-btn');
-        const status = document.getElementById('status');
-        const unlockBtn = document.getElementById('unlock-btn');
-        const unlockWarning = document.getElementById('unlock-warning');
-        const extremeModeModal = document.getElementById('extremeModeModal');
-        const modalYes = document.getElementById('modalYes');
-        const modalNo = document.getElementById('modalNo');
+    <div class="readout" id="mbps-display" aria-live="polite">Current: 500 Mbps</div>
 
-        // Variables
-        let trafficInterval;
-        let currentMbps = 500;
-        let dataBuffer = new Uint8Array(0);
-        let isUnlocked = false;
+    <section class="slider-section">
+      <label for="bandwidth-slider">WiFi Congestion Level (1-100,000 Mbps):</label>
+      <input
+        type="range"
+        min="1"
+        max="1000"
+        value="500"
+        id="bandwidth-slider"
+      >
+      <div class="slider-ends">
+        <span>1 Mbps</span>
+        <span id="max-label">1,000 Mbps</span>
+      </div>
+    </section>
 
-        // Update displayed value
-        slider.addEventListener('input', function() {
-            currentMbps = this.value;
-            mbpsDisplay.textContent = `Current: ${currentMbps} Mbps`;
-        });
+    <div class="controls">
+      <button id="unlock-btn" type="button">Unlock Extreme Mode</button>
+      <button class="primary" id="start-btn" type="button">Start Hogging WiFi</button>
+      <button id="stop-btn" type="button" disabled>Stop Hogging WiFi</button>
+    </div>
 
-        // Unlock extreme mode
-        unlockBtn.addEventListener('click', function() {
-            extremeModeModal.classList.add('active');
-        });
+    <div class="status inactive" id="status" role="status" aria-live="polite">
+      Not currently consuming WiFi resources
+    </div>
 
-        // Modal buttons
-        modalYes.addEventListener('click', function() {
-            isUnlocked = true;
-            extremeModeModal.classList.remove('active');
-            unlockWarning.style.display = 'block';
-            unlockBtn.style.display = 'none';
-            slider.max = 100000;
-            slider.value = 50000;
-            mbpsDisplay.textContent = `Current: 50,000 Mbps`;
-        });
+    <section class="how-it-works">
+      <h2>How it works:</h2>
+      <p>
+        This page does not generate WiFi traffic. The original code only
+        allocated browser memory, which could freeze or crash the tab at high
+        settings.
+      </p>
+      <p>
+        The controls here update the displayed setting and status only; they
+        do not send network traffic.
+      </p>
+    </section>
 
-        modalNo.addEventListener('click', function() {
-            extremeModeModal.classList.remove('active');
-        });
+    <footer class="credits">
+      Thanks to Ducks_UK and Goooose-UK!
+      <a href="https://www.youtube.com/@Ducks_UK"
+         target="_blank"
+         rel="noopener noreferrer">Ducks_UK on YouTube</a>
+    </footer>
+  </main>
 
-        // Start traffic generation
-        startBtn.addEventListener('click', function() {
-            if (trafficInterval) return; // Already running
+  <dialog id="extremeModeModal" aria-labelledby="modal-title">
+    <div class="modal-heading">
+      <div class="modal-icon" aria-hidden="true">!</div>
+      <h2 id="modal-title">Extreme Mode</h2>
+    </div>
 
-            status.textContent = "Currently consuming WiFi resources";
-            status.className = "status active";
-            startBtn.disabled = true;
-            stopBtn.disabled = false;
+    <div class="modal-content">
+      <p>You are about to enable Extreme Mode which allows bandwidth consumption up to 100,000 Mbps.</p>
+      <p><strong>Consequences of this action:</strong></p>
+      <ul>
+        <li>May completely saturate your network</li>
+        <li>Could cause other devices to lose internet connection</li>
+        <li>May trigger network protection mechanisms</li>
+        <li>Could potentially cause temporary network outages</li>
+        <li>May require router restart to restore normal operation</li>
+      </ul>
+      <p>Are you sure you want to continue?</p>
+    </div>
 
-            // Calculate data size based on Mbps (1 Mbps = 125000 bytes/sec)
-            const dataSize = currentMbps * 125000;
+    <label class="confirm-label" for="confirm-input">
+      Type ENABLE EXTREME MODE to confirm
+    </label>
+    <input
+      class="confirm-input"
+      id="confirm-input"
+      type="text"
+      autocomplete="off"
+      spellcheck="false"
+    >
 
-            // Generate traffic continuously
-            trafficInterval = setInterval(() => {
-                // Create new data buffer
-                dataBuffer = new Uint8Array(dataSize);
+    <div class="modal-buttons">
+      <button id="modalNo" type="button">No</button>
+      <button class="primary" id="modalYes" type="button" disabled>Yes</button>
+    </div>
+  </dialog>
 
-                // Simulate network activity by keeping the buffer in memory
-                const temp = dataBuffer;
-            }, 100);
-        });
+  <script>
+    const slider = document.querySelector("#bandwidth-slider");
+    const mbpsDisplay = document.querySelector("#mbps-display");
+    const status = document.querySelector("#status");
+    const modal = document.querySelector("#extremeModeModal");
+    const confirmInput = document.querySelector("#confirm-input");
+    const modalYes = document.querySelector("#modalYes");
+    const stopBtn = document.querySelector("#stop-btn");
+    const startBtn = document.querySelector("#start-btn");
 
-        // Stop traffic generation
-        stopBtn.addEventListener('click', function() {
-            clearInterval(trafficInterval);
-            trafficInterval = null;
-            dataBuffer = new Uint8Array(0);
-            status.textContent = "Not currently consuming WiFi resources";
-            status.className = "status inactive";
-            startBtn.disabled = false;
-            stopBtn.disabled = true;
-        });
-    </script>
+    const confirmationPhrase = "ENABLE EXTREME MODE";
+    let isRunning = false;
+
+    function updateDisplay() {
+      mbpsDisplay.textContent =
+        `Current: ${Number(slider.value).toLocaleString()} Mbps`;
+    }
+
+    slider.addEventListener("input", updateDisplay);
+
+    document.querySelector("#unlock-btn").addEventListener("click", () => {
+      confirmInput.value = "";
+      modalYes.disabled = true;
+      modal.showModal();
+      confirmInput.focus();
+    });
+
+    confirmInput.addEventListener("input", () => {
+      modalYes.disabled =
+        confirmInput.value.trim() !== confirmationPhrase;
+    });
+
+    document.querySelector("#modalNo").addEventListener("click", () => {
+      modal.close();
+    });
+
+    modalYes.addEventListener("click", () => {
+      if (confirmInput.value.trim() !== confirmationPhrase) return;
+
+      slider.max = "100000";
+      slider.value = "50000";
+      document.querySelector("#max-label").textContent = "100,000 Mbps";
+      document.querySelector("#unlock-warning").style.display = "block";
+      document.querySelector("#unlock-btn").hidden = true;
+      updateDisplay();
+      modal.close();
+    });
+
+    startBtn.addEventListener("click", () => {
+      if (isRunning) return;
+
+      isRunning = true;
+      status.textContent =
+        "Simulation running — no WiFi traffic is being sent.";
+      status.className = "status active";
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+    });
+
+    stopBtn.addEventListener("click", () => {
+      isRunning = false;
+      status.textContent =
+        "Not currently consuming WiFi resources";
+      status.className = "status inactive";
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    });
+  </script>
 </body>
 </html>
